@@ -49,12 +49,16 @@ func (c *encrypted) Find(ctx context.Context, in *core.SecretArgs) (*core.Secret
 		return nil, nil
 	}
 
+	// in.Build.Fork filed is broken.
+	// https://github.com/drone/go-scm/issues/122
+	isForked := in.Build.Fork != in.Repo.Slug
+
 	// if the build event is a pull request and the source
 	// repository is a fork, the secret is not exposed to
 	// the pipeline, for security reasons.
 	if in.Repo.Private == false &&
 		in.Build.Event == core.EventPullRequest &&
-		in.Build.Fork != "" {
+		isForked {
 		logger.Trace("secret: encrypted: restricted from forks")
 		return nil, nil
 	}
